@@ -22,12 +22,12 @@ function download(repo, dest, opts, fn) {
     opts = null;
   }
   opts = opts || {};
-  var clone = opts.clone || false;
+  opts.clone = opts.clone || false;
 
   repo = normalize(repo);
-  var url = getUrl(repo, clone);
+  var url = getUrl(repo, opts);
 
-  if (clone) {
+  if (opts.clone) {
     gitclone(url, dest, { checkout: repo.checkout }, function(err) {
       if (err === undefined) {
         rm(dest + "/.git");
@@ -86,17 +86,17 @@ function normalize(repo) {
  * @return {String}
  */
 
-function getUrl(repo, clone) {
+function getUrl(repo, opts) {
   var url;
 
   if (repo.type === "github")
-    url = github(repo, clone);
+    url = github(repo, opts);
   else if (repo.type === "gitlab")
-    url = gitlab(repo, clone);
+    url = gitlab(repo, opts);
   else if (repo.type === "bitbucket")
-    url = bitbucket(repo, clone);
+    url = bitbucket(repo, opts);
   else
-    url = github(repo, clone);
+    url = github(repo, opts);
 
   return url;
 }
@@ -108,10 +108,10 @@ function getUrl(repo, clone) {
  * @return {String}
  */
 
-function github(repo, clone) {
+function github(repo, opts) {
   var url;
-
-  if (clone)
+  
+  if (opts.clone)
     url = "git@" + repo.host + ":" + repo.owner + "/" + repo.name + ".git";
   else
     url = "https://" + repo.host + "/" + repo.owner + "/" + repo.name + "/archive/" + repo.checkout + ".zip";
@@ -128,11 +128,12 @@ function github(repo, clone) {
 
 function gitlab(repo, clone) {
   var url;
+  var httpProtocol = opts.security === false? "http://": "https://";
 
   if (clone)
     url = "git@" + repo.host + ":" + repo.owner + "/" + repo.name + ".git";
   else
-    url = "https://" + repo.host + "/" + repo.owner + "/" + repo.name + "/repository/archive.zip?ref=" + repo.checkout;
+    url = httpProtocol + repo.host + "/" + repo.owner + "/" + repo.name + "/repository/archive.zip?ref=" + repo.checkout;
 
   return url;
 }
